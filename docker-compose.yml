@@ -10,3 +10,10 @@ services:
       TZ: ${TZ}
     volumes:
       - ./:/usr/src/app
+  chrome:
+    image: selenium/standalone-chrome:108.0
+    restart: unless-stopped
+    ports:
+      - 4444:4444
+      - 7900:7900
+    shm_size: "2g"
