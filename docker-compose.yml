@@ -1,0 +1,12 @@
+version: "3.8"
+
+services:
+  app:
+    build: .
+    image: robin-booking
+    restart: "no"
+    command: book
+    environment:
+      TZ: ${TZ}
+    volumes:
+      - ./:/usr/src/app
