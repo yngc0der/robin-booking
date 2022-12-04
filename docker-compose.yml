@@ -8,8 +8,11 @@ services:
     command: book
     environment:
       TZ: ${TZ}
+      SELENIUM_WEBDRIVER_URL: http://chrome:4444
     volumes:
       - ./:/usr/src/app
+    links:
+      - chrome
   chrome:
     image: selenium/standalone-chrome:108.0
     restart: unless-stopped
