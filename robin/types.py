@@ -1,0 +1,1 @@
+JsonDict = dict[str, any]
