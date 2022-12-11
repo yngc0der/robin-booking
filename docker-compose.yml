@@ -5,18 +5,33 @@ services:
     build: .
     image: robin-booking
     restart: "no"
-    command: book
     environment:
       TZ: ${TZ}
-      SELENIUM_WEBDRIVER_URL: http://chrome:4444
+      SELENIUM_WEBDRIVER_URL: http://selenium-hub:4444/wd/hub
+      ROBIN_CREDENTIALS: ${ROBIN_CREDENTIALS}
+      ROBIN_USER_ID: ${ROBIN_USER_ID}
+      ROBIN_ORGANIZATION_ID: ${ROBIN_ORGANIZATION_ID}
+      ROBIN_SPACE_ID: ${ROBIN_SPACE_ID}
+      ROBIN_LEVEL_ID: ${ROBIN_LEVEL_ID}
+      ROBIN_SEATS_PRIORITY: ${ROBIN_SEATS_PRIORITY}
     volumes:
       - ./:/usr/src/app
     links:
-      - chrome
+      - selenium-hub
+
   chrome:
-    image: selenium/standalone-chrome:108.0
-    restart: unless-stopped
+    image: selenium/node-chrome:4.7.1-20221208
+    shm_size: 2gb
+    depends_on:
+      - selenium-hub
+    environment:
+      - SE_EVENT_BUS_HOST=selenium-hub
+      - SE_EVENT_BUS_PUBLISH_PORT=4442
+      - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+
+  selenium-hub:
+    image: selenium/hub:4.7.1-20221208
     ports:
-      - 4444:4444
-      - 7900:7900
-    shm_size: "2g"
+      - "4442:4442"
+      - "4443:4443"
+      - "4444:4444"
