@@ -4,7 +4,7 @@ services:
   app:
     build: .
     image: robin-booking
-    restart: "no"
+    restart: always
     depends_on:
       - selenium-hub
     environment:
@@ -22,6 +22,7 @@ services:
   chrome:
     image: selenium/node-chrome:4.7.1-20221208
     shm_size: 2gb
+    restart: always
     depends_on:
       - selenium-hub
     environment:
@@ -31,6 +32,7 @@ services:
 
   selenium-hub:
     image: selenium/hub:4.7.1-20221208
+    restart: always
     ports:
       - "4442:4442"
       - "4443:4443"
