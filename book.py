@@ -78,7 +78,7 @@ if __name__ == "__main__":
                 "time_zone": TIMEZONE
             },
             "reservee": {
-                "user_id": 965810
+                "user_id": ROBIN_USER_ID
             }
         })
 
