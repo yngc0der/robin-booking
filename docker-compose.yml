@@ -5,6 +5,8 @@ services:
     build: .
     image: robin-booking
     restart: "no"
+    depends_on:
+      - selenium-hub
     environment:
       TZ: ${TZ}
       SELENIUM_WEBDRIVER_URL: http://selenium-hub:4444/wd/hub
@@ -14,8 +16,6 @@ services:
       ROBIN_SPACE_ID: ${ROBIN_SPACE_ID}
       ROBIN_LEVEL_ID: ${ROBIN_LEVEL_ID}
       ROBIN_SEATS_PRIORITY: ${ROBIN_SEATS_PRIORITY}
-    volumes:
-      - ./:/usr/src/app
     links:
       - selenium-hub
 
@@ -25,9 +25,9 @@ services:
     depends_on:
       - selenium-hub
     environment:
-      - SE_EVENT_BUS_HOST=selenium-hub
-      - SE_EVENT_BUS_PUBLISH_PORT=4442
-      - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+      SE_EVENT_BUS_HOST: selenium-hub
+      SE_EVENT_BUS_PUBLISH_PORT: 4442
+      SE_EVENT_BUS_SUBSCRIBE_PORT: 4443
 
   selenium-hub:
     image: selenium/hub:4.7.1-20221208
