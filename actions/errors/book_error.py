@@ -1,2 +1,0 @@
-class BookError(Exception):
-    pass

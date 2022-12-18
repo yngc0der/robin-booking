@@ -1,5 +1,4 @@
-from actions import AbstractAction
-from actions.errors import BookError
+from actions import AbstractAction, ActionError
 from robin import ApiClient, JsonDict
 from robin.http import HttpClient
 from datetime import datetime, timedelta
@@ -11,34 +10,59 @@ class BookAction(AbstractAction):
         with HttpClient.create_webdriver(self._config.selenium_webdriver_url) as driver:
             api_client = ApiClient(HttpClient(driver))
 
-            api_client.authenticate(self._config.robin_credentials, self._config.robin_organization_id)
+            organization = api_client.organization(self._config.robin_organization).data
+            
+            api_client.authenticate(self._config.robin_credentials, organization["id"])
 
-            seats_response = api_client.space_seats(self._config.robin_space_id, {
-                "level_ids": self._config.robin_level_id,
-                "include": "permissions:operations(seats:reserve)",
-                "page": 1,
-                "per_page": 100
-            })
+            user = api_client.me().data
 
-            seats = self.__get_sorted_by_priority_seats(seats_response.data, self._config.robin_seats_priority)
+            location = self.__find_location(
+                api_client.locations(organization["id"], {
+                    "query": self._config.robin_location,
+                    "page": 1,
+                    "per_page": 150
+                }).data,
+                self._config.robin_location
+            )
+
+            if location is None:
+                raise ActionError("Location is not found")
+
+            level = self.__find_level(
+                api_client.location_levels(location["id"], {
+                    "page": 1,
+                    "per_page": 150
+                }).data,
+                self._config.robin_level
+            )
+
+            if level is None:
+                raise ActionError("Location level is not found")
+
+            seats = self.__get_sorted_by_priority_seats(
+                api_client.seats(organization["id"], {
+                    "level_ids": level["id"],
+                    "include": "permissions:operations(seats:reserve)",
+                    "page": 1,
+                    "per_page": 150
+                }).data,
+                self._config.robin_seats_priority
+            )
 
             book_from, book_to = self.__get_book_dates(ZoneInfo(self._config.timezone))
 
-            reservations_response = api_client.reservations_seats({
-                "space_ids": self._config.robin_space_id,
-                "level_ids": self._config.robin_level_id,
+            reservations = api_client.reservations_seats({
+                "level_ids": level["id"],
                 "after": book_from.isoformat(),
                 "before": book_to.isoformat(),
                 "page": 1,
                 "per_page": 2000
-            })
-
-            reservations = reservations_response.data
+            }).data
 
             free_seat = self.__get_first_free_seat(seats, reservations)
 
             if free_seat is None:
-                raise BookError('Free seat for booking is not found')
+                raise ActionError('Free seat for booking is not found')
 
             api_client.reserve_seat(free_seat["id"], {
                 "type": "hoteled",
@@ -51,7 +75,7 @@ class BookAction(AbstractAction):
                     "time_zone": self._config.timezone
                 },
                 "reservee": {
-                    "user_id": self._config.robin_user_id
+                    "user_id": user["id"]
                 }
             })
 
@@ -75,3 +99,15 @@ class BookAction(AbstractAction):
     def __get_book_dates(self, tz: ZoneInfo) -> tuple[datetime, datetime]:
         book_date = datetime.now(tz).replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=3)
         return (book_date.astimezone(ZoneInfo("UTC")), book_date.replace(hour=20, minute=30).astimezone(ZoneInfo("UTC")))
+
+    def __find_location(self, locations: list[JsonDict], name: str) -> Optional[JsonDict]:
+        for location in locations:
+            if location["name"] == name:
+                return location
+        return None
+
+    def __find_level(self, levels: list[JsonDict], name: str) -> Optional[JsonDict]:
+        for level in levels:
+            if level["name"] == name:
+                return level
+        return None
