@@ -1,1 +1,1 @@
-1 0 * * 1,2,5,6,7 python3 /usr/src/app/book.py > /dev/null 2>&1
+1 0 * * 1,2,5,6,7 python3 /usr/src/app/run_action.py book > /dev/null 2>&1
