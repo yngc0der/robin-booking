@@ -22,6 +22,8 @@ def main() -> None:
     match args.action:
         case "book":
             action = actions.BookAction(config)
+        case "checkin":
+            action = actions.CheckinAction(config)
         case _:
             raise NotImplementedError('Action is not exists')
 
