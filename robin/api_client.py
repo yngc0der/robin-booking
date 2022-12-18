@@ -22,6 +22,15 @@ class ApiClient:
 
         self.__access_token = response.data["access_token"]
 
+    def seats(self, params: JsonDict) -> ApiResponse:
+        response = self.__send_api_request(
+            endpoint="/seats",
+            method="GET",
+            query_params=params,
+            authorization_header="Access-Token {}".format(self.__access_token)
+        )
+        return response
+
     def space_seats(self, space_id: int, params: JsonDict) -> ApiResponse:
         response = self.__send_api_request(
             endpoint="/spaces/{}/seats".format(space_id),
@@ -44,6 +53,15 @@ class ApiClient:
         response = self.__send_api_request(
             endpoint="/seats/{}/reservations".format(seat),
             method="POST",
+            body_params=params,
+            authorization_header="Access-Token {}".format(self.__access_token)
+        )
+        return response
+
+    def confirm_reservation(self, reservation_id: str, params: JsonDict) -> ApiResponse:
+        response = self.__send_api_request(
+            endpoint="/reservations/seats/{}/confirmation".format(reservation_id),
+            method="PUT",
             body_params=params,
             authorization_header="Access-Token {}".format(self.__access_token)
         )
