@@ -14,6 +14,7 @@ class BookAction(AbstractAction):
             api_client.authenticate(self._config.robin_credentials, self._config.robin_organization_id)
 
             seats_response = api_client.space_seats(self._config.robin_space_id, {
+                "level_ids": self._config.robin_level_id,
                 "include": "permissions:operations(seats:reserve)",
                 "page": 1,
                 "per_page": 100
@@ -24,6 +25,7 @@ class BookAction(AbstractAction):
             book_from, book_to = self.__get_book_dates(ZoneInfo(self._config.timezone))
 
             reservations_response = api_client.reservations_seats({
+                "space_ids": self._config.robin_space_id,
                 "level_ids": self._config.robin_level_id,
                 "after": book_from.isoformat(),
                 "before": book_to.isoformat(),
